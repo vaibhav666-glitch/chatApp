@@ -21,19 +21,24 @@ const io=new Server(server,
 
 io.on('connection',(socket)=>{
     console.log('Client connected');
-    socket.on('join',(data)=>{
-        socket.userName=data;
+    socket.on('createUser',(data)=>{
+        console.log(data);
+        socket.userName=data.userName;
+        socket.avatar=data.avatar
+        io.emit('onlineStatus',socket.userName);
     })
     socket.on('message',(message)=>{
         let userMessage={
             userName:socket.userName,
-            message:message
+            message:message,
+            avatar:socket.avatar
         }
         console.log(userMessage);
         //Broadcast message to all connected clients
         socket.broadcast.emit('broadcastMessage',userMessage);
     })
     socket.on('disconnect',()=>{
+        socket.broadcast.emit('offline',socket.userName);
         console.log('Client disconnected');
     })
 })
