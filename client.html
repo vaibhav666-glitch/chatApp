@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Chat App</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
     <style>
         /* Custom Scrollbar for chat container */
         .chat-container::-webkit-scrollbar {
@@ -18,8 +17,8 @@
 
         /* Change avatar border when selected */
         input[type="radio"]:checked + img {
-            border-color: black; /* Darker border to indicate selection */
-            box-shadow: 0 0 10px #000; /* Optional: to make the selection more prominent */
+            border-color: black;
+            box-shadow: 0 0 10px #000;
         }
     </style>
 </head>
@@ -54,7 +53,6 @@
                 </div>
             </div>
             
-            <!-- Submit Button -->
             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
                 Submit
             </button>
@@ -62,98 +60,99 @@
     </div>
   
     <div class="chat-container w-full max-w-md border bg-white rounded-lg shadow-lg h-[80vh] flex flex-col justify-between" style="display: none;">
-        <!-- Message List -->
-        <div id="messageList" class="p-4 h-[70vh] overflow-y-auto flex flex-col space-y-3">
-            <!-- Messages will be appended here -->
-        </div>
-
-        <!-- Message Input -->
+        <div id="messageList" class="p-4 h-[70vh] overflow-y-auto flex flex-col space-y-3"></div>
         <form id="sendMessageForm" class="flex items-center p-4 bg-gray-100 border-t">
-            <input class="flex-1 px-4 py-2 bg-gray-200 rounded-full focus:outline-none" 
-                   type="text" id="messageInput" placeholder="Type a message..." />
-            <button class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full ml-2" id="sendMessage">
-                Send
-            </button>
+            <input class="flex-1 px-4 py-2 bg-gray-200 rounded-full focus:outline-none" type="text" id="messageInput" placeholder="Type a message..." />
+            <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full ml-2" id="sendMessage">Send</button>
         </form>
-
-        <div id="onlineContainer" class="flex flex-col items-center p-4 bg-gray-100 border-t bg-purple-200"></div>
+        <div id="onlineContainer" class="p-4 bg-gray-100 border-t bg-purple-200"></div>
     </div>
 
     <script src="http://localhost:3200/socket.io/socket.io.js"></script>
     <script>
-    const socket = io.connect('http://localhost:3200');
-    const createUser = document.getElementById('createUser');
-    const chatContainer = document.querySelector('.chat-container');
-    const loginContainer = document.getElementById('login-container');
+        const socket = io.connect('http://localhost:3200');
+        const createUser = document.getElementById('createUser');
+        const chatContainer = document.querySelector('.chat-container');
+        const loginContainer = document.getElementById('login-container');
+        
+        const messageList = document.getElementById('messageList');
+        const sendMessageForm = document.getElementById('sendMessageForm');
+        const onlineContainer = document.getElementById('onlineContainer');
 
-    createUser.addEventListener('submit', (e) => {
-        e.preventDefault();
-
-        // Fetch the userName and avatar after form submission
-        const userName = document.getElementById('name').value;
-        const avatar = document.querySelector('input[name="avatar"]:checked').value;
        
-        // Emit the user creation event
-        socket.emit('createUser', {userName, avatar });
 
-        // Hide login container and show chat container
-        loginContainer.style.display = 'none';
-        chatContainer.style.display = 'block';
-    });
 
-    socket.on('onlineStatus', (userName) => {
-        const online = document.getElementById('onlineContainer');
-        const personStatus = document.createElement('div');
-        personStatus.classList.add('online');
-        personStatus.textContent = userName + " is online";
-        online.appendChild(personStatus);
-    });
+        createUser.addEventListener('submit', (e) => {
+            const userName = document.getElementById('name').value;
+            const avatar = document.querySelector('input[name="avatar"]:checked').value;
+            e.preventDefault();
+            socket.emit('createUser', { userName, avatar });
 
-    socket.on('offline', (userName) => {
-        const onlinePerson = document.querySelectorAll(".online");
-        onlinePerson.forEach((personStatus) => {
-            if (personStatus.textContent.includes(userName)) {
-                personStatus.remove();
-            }
+            loginContainer.style.display = 'none';
+            chatContainer.style.display = 'block';
         });
-    });
 
-    // Message sending and receiving logic
-    const messageInput = document.getElementById('messageInput');
-    const messageList = document.getElementById('messageList');
-    const sendMessageForm = document.getElementById('sendMessageForm');
 
-    sendMessageForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const message = messageInput.value;
-        const userName = document.getElementById('name').value;
-        const avatar = document.querySelector('input[name="avatar"]:checked').value;
-
-        if (message) {
-            socket.emit('message', message);
-
-            // Add sender's message to the list
-            const messageElement = document.createElement('div');
-            messageElement.classList.add('bg-green-100', 'p-3', 'rounded-xl', 'self-end', 'max-w-xs', 'text-right');
-            messageElement.innerHTML = `<img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${avatar}" alt="${avatar} Avatar" class="w-6 h-6 inline-block mr-2">` + userName + ": " + message;
+            //load old chats
+     socket.on('load_messages',(messages)=>{
+            messages.forEach(message=>{
+                const messageElement = document.createElement('div');
+                messageElement.innerText = new Date(message.timestamp).toDateString()+"-  "+ message.userName+": "+ message.message;
+                messageElement.classList.add('message');
             messageList.appendChild(messageElement);
-            messageInput.value = '';
+            })
+        })
+
+        sendMessageForm.addEventListener('submit',(e)=>{
+            e.preventDefault();
+            const userName = document.getElementById('name').value;
+            const avatar = document.querySelector('input[name="avatar"]:checked').value;
+            const messageInput = document.getElementById('messageInput');
+            socket.emit('message',messageInput.value);
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('bg-green-100', 'p-3', 'rounded-xl', 'self-end', 'max-w-xs');
+            messageElement.innerHTML = `<img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${avatar}" alt="${avatar} Avatar" class="w-6 h-6 inline-block mr-2">${userName}: ${messageInput.value}`;
+            messageList.appendChild(messageElement);
+            messageInput.value=" "
+
+            messageList.scrollTop = messageList.scrollHeight;
+        })
+
+        socket.on('onlineStatus', (users) => {
+            onlineContainer.innerHTML = ''; // Clear previous online users
+            users.forEach(user => {
+                const personStatus = document.createElement('div');
+                personStatus.textContent = `${user.userName} is online`;
+                onlineContainer.appendChild(personStatus);
+            });
+        });
+
+        socket.on('welcomeMessage', (data) => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('bg-gray-200', 'p-3', 'rounded-xl', 'items-center','text-center', 'max-w-xl');
+            messageElement.innerHTML = `<img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${data.avatar}" alt="${data.avatar} Avatar" class="w-6 h-6 inline-block mr-2">${data.userName}: ${data.message}`;
+            messageList.appendChild(messageElement);
+
+
+            if (data.message === "Welcome") {
+        messageElement.innerHTML = "Welcome! " +
+           ` <img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${data.avatar}" alt="${data.avatar} Avatar" class="w-6 h-6 inline-block mr-2"> `+
+            data.userName;
+    } else {
+        messageElement.innerHTML = `<img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${data.avatar}" alt="${data.avatar} Avatar" class="w-6 h-6 inline-block mr-2">` +
+            data.userName + ": " + data.message;
+    }
+        });
+
+        socket.on('broadcastMessage', (userMessage) => {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('bg-blue-100', 'p-3', 'rounded-xl', 'self-start', 'max-w-xs');
+            messageElement.innerHTML = `<img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${userMessage.avatar}" alt="${userMessage.avatar} Avatar" class="w-6 h-6 inline-block mr-2">${userMessage.userName}: ${userMessage.message}`;
+            messageList.appendChild(messageElement);
 
             // Scroll to the latest message
-            messageList.scrollTop = messageList.scrollHeight;
-        }
-    });
-
-    // Listen for broadcast message
-    socket.on('broadcastMessage', (userMessage) => {
-        const messageElement = document.createElement('div');
-        messageElement.classList.add('bg-blue-100', 'p-3', 'rounded-xl', 'self-start', 'max-w-xs');
-        messageElement.innerHTML = `<img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${userMessage.avatar}" alt="${userMessage.avatar} Avatar" class="w-6 h-6 inline-block mr-2">` + userMessage.userName + ": " + userMessage.message;
-        messageList.appendChild(messageElement);
-
-        // Scroll to the latest message
         messageList.scrollTop = messageList.scrollHeight;
-    });
+        });
     </script>
 </body>
 </html>
