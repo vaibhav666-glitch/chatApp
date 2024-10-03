@@ -30,18 +30,20 @@ io.on('connection', (socket) => {
         // Add the user to the onlineUsers list
         onlineUsers.push({ userName: socket.userName, avatar: socket.avatar });
 
-        // Send welcome message to the user
-        socket.emit('welcomeMessage', { userName: socket.userName, avatar: socket.avatar, message: "Welcome" });
-        
-        // Broadcast to others that a user has joined
-        socket.broadcast.emit('welcomeMessage', { userName: socket.userName, avatar: socket.avatar, message: "has joined the chat" });
-
         // Load old messages from the database and send to the user
         Chat.find().sort({ timestamp: 1 }).limit(50)
             .then(messages => {
                 socket.emit('load_messages', messages);
+                  // Send welcome message to the user
+         socket.emit('welcomeMessage', { userName: socket.userName, avatar: socket.avatar, message: "Welcome" });
+        
+         // Broadcast to others that a user has joined
+         socket.broadcast.emit('welcomeMessage', { userName: socket.userName, avatar: socket.avatar, message: "has joined the chat" });
+ 
             })
             .catch(err => console.log(err));
+
+       
 
         // Broadcast the updated list of online users
         io.emit('onlineStatus', onlineUsers);

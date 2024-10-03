@@ -20,6 +20,15 @@
             border-color: black;
             box-shadow: 0 0 10px #000;
         }
+        #messageList {
+           
+            background-image: url('./asset/5686005.jpg'); /* Correct background image syntax */
+            background-size: cover; /* Ensures the image covers the entire div */
+            background-position: center; /* Centers the background image */
+            background-repeat: no-repeat; /* Prevents the image from repeating */
+        }
+
+
     </style>
 </head>
 <body class="bg-gray-100 h-screen flex justify-center items-center">
@@ -61,8 +70,8 @@
   
     <div class="chat-container w-full max-w-md border bg-white rounded-lg shadow-lg h-[80vh] flex flex-col justify-between" style="display: none;">
         <div id="messageList" class="p-4 h-[70vh] overflow-y-auto flex flex-col space-y-3"></div>
-        <form id="sendMessageForm" class="flex items-center p-4 bg-gray-100 border-t">
-            <input class="flex-1 px-4 py-2 bg-gray-200 rounded-full focus:outline-none" type="text" id="messageInput" placeholder="Type a message..." />
+        <form id="sendMessageForm" class="flex items-center p-4 bg-orange-100 border-t">
+            <input class="flex-1 px-4 py-2 bg-orange-200 rounded-full focus:outline-none" type="text" id="messageInput" placeholder="Type a message..." />
             <button type="submit" class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-full ml-2" id="sendMessage">Send</button>
         </form>
         <div id="onlineContainer" class="p-4 bg-gray-100 border-t bg-purple-200"></div>
@@ -97,7 +106,7 @@
      socket.on('load_messages',(messages)=>{
             messages.forEach(message=>{
                 const messageElement = document.createElement('div');
-                messageElement.innerText = new Date(message.timestamp).toDateString()+"-  "+ message.userName+": "+ message.message;
+                messageElement.innerHTML = `<img src="https://api.dicebear.com/9.x/adventurer/svg?seed=${message.avatar}" alt="${message.avatar} Avatar" class="w-6 h-6 inline-block mr-2">${message.userName}: ${message.message}`;
                 messageElement.classList.add('message');
             messageList.appendChild(messageElement);
             })
